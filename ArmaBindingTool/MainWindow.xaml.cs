@@ -79,8 +79,9 @@ namespace ArmaBindingTool
                 {
                     joystick.Poll();
                     var state = joystick.GetCurrentState();
-                    int[] allValues = { state.X, state.Y, state.Z, state.RotationX, state.RotationY, state.RotationZ, state.Sliders[0], state.Sliders[1] };
 
+                    // 1. Achsen (wie bisher)
+                    int[] allValues = { state.X, state.Y, state.Z, state.RotationX, state.RotationY, state.RotationZ, state.Sliders[0], state.Sliders[1] };
                     for (int a = 0; a < allValues.Length; a++)
                     {
                         int val = allValues[a];
@@ -95,8 +96,29 @@ namespace ArmaBindingTool
                             }
                         }
                     }
+
+                    // 2. Buttons (wie bisher)
                     for (int b = 0; b < state.Buttons.Length; b++)
                         if (state.Buttons[b]) ProcessBinding($"joystick{i}:button{b}");
+
+                    // 3. NEU: Coolie Hat (POV)
+                    for (int p = 0; p < state.PointOfViewControllers.Length; p++)
+                    {
+                        int povValue = state.PointOfViewControllers[p];
+                        if (povValue != -1)
+                        { // -1 bedeutet zentriert
+                            string direction = "";
+                            if (povValue == 0) direction = "up";
+                            else if (povValue == 9000) direction = "right";
+                            else if (povValue == 18000) direction = "down";
+                            else if (povValue == 27000) direction = "left";
+
+                            if (!string.IsNullOrEmpty(direction))
+                            {
+                                ProcessBinding($"joystick{i}:pov{p}{direction}");
+                            }
+                        }
+                    }
                 }
                 catch { }
             }
